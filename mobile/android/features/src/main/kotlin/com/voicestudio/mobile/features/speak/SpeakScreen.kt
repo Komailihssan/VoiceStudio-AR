@@ -94,12 +94,23 @@ internal fun chooseSpeakModel(models: List<PhoneModel>,installed: Set<String>,ch
     // Prefer an installed-model download option that can actually synthesize Arabic for a fresh TTS setup.
     // Supertonic 3 in the v0.5.8 catalogue declares "ar" and is the phone's Arabic-capable preset TTS model.
     val arabic=if(capability=="tts") matching.filter {"ar" in it.languages} else emptyList()
-    return arabic.firstOrNull {it.fits(ramBytes)}
+    // An already-downloaded Arabic model wins over one that still needs a download.
+    return arabic.firstOrNull {it.id in installed&&it.fits(ramBytes)}
+        ?: arabic.firstOrNull {it.fits(ramBytes)}
         ?: matching.firstOrNull {it.id in installed&&it.fits(ramBytes)}
         ?: matching.firstOrNull {it.fits(ramBytes)}
         ?: matching.firstOrNull {it.id in installed}
         ?: arabic.firstOrNull()
         ?: matching.firstOrNull()
+}
+
+/** Language for phone speech: "auto" for cloning, otherwise the user's valid pick, then Arabic, then the model's first language. */
+internal fun speakLanguage(current: String,userPicked: Boolean,languages: List<String>,cloning: Boolean): String=when {
+    cloning -> "auto"
+    userPicked&&current in languages -> current
+    "ar" in languages -> "ar"
+    current in languages -> current
+    else -> languages.firstOrNull().orEmpty()
 }
 
 @Composable fun SpeakScreen(vm: StudioViewModel, initialPhoneVoiceID: String? = null, initialComputerVoiceID: String? = null, initialPhonePreset: Int? = null, initialPhoneModelID: String? = null, initialText: String? = null, openGallery: (() -> Unit)? = null) {
@@ -145,10 +156,11 @@ internal fun chooseSpeakModel(models: List<PhoneModel>,installed: Set<String>,ch
             val validSpeaker=voice!=null||speaker.toIntOrNull()?.let {it in 0 until speakers}==true
             LaunchedEffect(selected?.id,speakers) {if(voice==null&&!validSpeaker) speaker=if(selected?.requiresReference==true) "" else "0"}
             var language by rememberSaveable {mutableStateOf("ar")}
+            // Arabic stays the default only until the user picks a language; their pick then survives
+            // rotation and model switches whenever the new model supports it.
+            var languagePicked by rememberSaveable {mutableStateOf(false)}
             LaunchedEffect(selected?.id,voice?.id) {
-                language=if(voice!=null||selected?.capability=="clone") "auto"
-                    else if("ar" in selected?.languages.orEmpty()) "ar"
-                    else language.takeIf {it in selected?.languages.orEmpty()} ?: selected?.languages?.firstOrNull().orEmpty()
+                language=speakLanguage(language,languagePicked,selected?.languages.orEmpty(),voice!=null||selected?.capability=="clone")
             }
             val languageChoices=if(voice!=null||selected?.capability=="clone") listOf(Choice("auto",tr("languagePicker.auto"))) else selected?.languages.orEmpty().map {Choice(it,languageName(it,LocalL10n.current.locale))}
             Screen(bottomBar={
@@ -172,7 +184,7 @@ internal fun chooseSpeakModel(models: List<PhoneModel>,installed: Set<String>,ch
                         vm.preference {prefs -> prefs.copy(phoneModels=prefs.phoneModels+(speakModelKey(if(voice!=null&&chosen.supportsCloning) "clone" else "tts") to id)+(if(chosen.supportsCloning) mapOf("speak-clone" to id) else emptyMap()))}
                     }
                     HorizontalDivider(color=role("border"))
-                    ChoicePicker("mobile.speak.language",language,languageChoices) {language=it}
+                    ChoicePicker("mobile.speak.language",language,languageChoices) {language=it;languagePicked=true}
                 }
                 com.voicestudio.mobile.features.models.ModelRamWarning(vm,listOfNotNull(selected))
                 if(selected?.requiresReference==true&&voice==null) {

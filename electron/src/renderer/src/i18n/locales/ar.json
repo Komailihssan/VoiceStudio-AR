@@ -4236,7 +4236,9 @@
       "remove_selection": "إزالة {{name}}",
       "more_actions": "مزيد من الإجراءات لـ {{name}}",
       "dub_restart": "تعذّر بدء الدبلجة. اختر المصدر وابدأ من جديد. إذا استمرت المشكلة، أعد الاتصال بمضيف VoiceStudio.",
-      "dub_foreground_failed": "تعذّر على Android بدء خدمة الرفع في الخلفية. أعد فتح VoiceStudio وابدأ الدبلجة من جديد. إذا استمر الفشل، حدّث التطبيق أو أعد تثبيته."
+      "dub_foreground_failed": "تعذّر على Android بدء خدمة الرفع في الخلفية. أعد فتح VoiceStudio وابدأ الدبلجة من جديد. إذا استمر الفشل، حدّث التطبيق أو أعد تثبيته.",
+      "clone_interrupted": "توقف الاستنساخ لأن VoiceStudio غادر الشاشة. أبقِ التطبيق مفتوحًا أثناء التشغيل. العينة والاسم محفوظان، فاضغط «إعادة المحاولة» للبدء من جديد.",
+      "operation_busy": "هناك مهمة أخرى قيد التشغيل. انتظر حتى تنتهي أو ألغِها أولًا."
     },
     "keyboard": {
       "done": "تم"
@@ -4325,7 +4327,22 @@
       "accepted": "تم قبول الترخيص",
       "not_accepted": "لم يُقبل الترخيص",
       "receipt": "{{action}} · {{time}} · التطبيق {{version}} · الشروط {{fingerprint}}",
-      "try_anyway": "جرّب على أي حال"
+      "try_anyway": "جرّب على أي حال",
+      "category": {
+        "commercial-ok": "الاستخدام التجاري مسموح",
+        "conditional": "تنطبق شروط",
+        "non-commercial": "للاستخدام غير التجاري فقط",
+        "unidentified": "الترخيص غير محدد"
+      },
+      "right_commercial": "الاستخدام التجاري",
+      "right_outputs": "الصوت المُولَّد",
+      "right_redistribution": "مشاركة النموذج",
+      "right_voice": "حقوق الصوت",
+      "right_unknown": "غير مذكور",
+      "right_restricted": "مقيّد",
+      "licence_view": "عرض الترخيص",
+      "licence_source": "مصدر النموذج",
+      "exact_terms": "الشروط الحرفية"
     },
     "simple": {
       "phone": "الهاتف",
