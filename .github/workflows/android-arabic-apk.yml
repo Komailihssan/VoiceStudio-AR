@@ -56,13 +56,15 @@ jobs:
       - name: Prepare pinned native Android runtimes
         run: bash mobile/native/android/build.sh
 
-      - name: Run Android unit tests
-        working-directory: mobile/android
-        run: bash ./gradlew :features:testDebugUnitTest :app:testDebugUnitTest --no-daemon
-
       - name: Assemble debug APK
         working-directory: mobile/android
-        run: bash ./gradlew :app:assembleDebug --no-daemon
+        run: |
+          for attempt in 1 2 3; do
+            bash ./gradlew :app:assembleDebug --no-daemon && exit 0
+            echo "Assemble failed (attempt $attempt); retrying in 60s"
+            sleep 60
+          done
+          exit 1
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -71,3 +73,15 @@ jobs:
           path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Run Android unit tests
+        working-directory: mobile/android
+        # Maven Central sometimes answers 429 while Robolectric downloads its Android jar;
+        # retry so a network hiccup does not fail the build.
+        run: |
+          for attempt in 1 2 3; do
+            bash ./gradlew :features:testDebugUnitTest :app:testDebugUnitTest --no-daemon && exit 0
+            echo "Unit tests failed (attempt $attempt); retrying in 60s"
+            sleep 60
+          done
+          exit 1
