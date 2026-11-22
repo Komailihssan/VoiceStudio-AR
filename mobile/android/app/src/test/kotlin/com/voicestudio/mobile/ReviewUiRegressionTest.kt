@@ -88,8 +88,8 @@ class ReviewUiRegressionTest {
         try {
             content {SpeakScreen(vm)}
             await {!vm.phone.state.value.loading&&vm.phone.state.value.models.isNotEmpty()}
-            compose.waitUntil(5000) {compose.onAllNodesWithText("Kitten").fetchSemanticsNodes().isNotEmpty()}
-            compose.onNodeWithContentDescription("Model, currently Kitten").performScrollTo().performClick()
+            compose.waitUntil(5_000L) { compose.onAllNodesWithText("Supertonic 3").fetchSemanticsNodes().isNotEmpty() }
+compose.onNodeWithContentDescription("Model, currently Supertonic 3").performScrollTo().performClick()
             for(name in listOf("Kitten","Kokoro","OmniVoice","Piper","Supertonic 3","Pocket TTS","ZipVoice")) {
                 compose.onNodeWithText("Search").performTextReplacement(name)
                 compose.onAllNodes(hasText(name) and hasClickAction() and !hasSetTextAction()).onLast().assertExists()
@@ -108,8 +108,8 @@ class ReviewUiRegressionTest {
         try {
             content {SpeakScreen(vm)}
             await {!vm.phone.state.value.loading&&vm.phone.state.value.models.isNotEmpty()}
-            compose.waitUntil(5000) {compose.onAllNodesWithText("Kitten").fetchSemanticsNodes().isNotEmpty()}
-            compose.onNodeWithContentDescription("Model, currently Kitten").performScrollTo().performClick()
+            compose.waitUntil(5_000L) { compose.onAllNodesWithText("Supertonic 3").fetchSemanticsNodes().isNotEmpty() }
+compose.onNodeWithContentDescription("Model, currently Supertonic 3").performScrollTo().performClick()
             compose.onNodeWithText("Search").performTextReplacement("OmniVoice")
             compose.onNode(hasText("OmniVoice") and hasClickAction() and !hasSetTextAction()).performClick()
             compose.onNodeWithText("Choose a saved voice to use this model. You can import one from Gallery.").performScrollTo().assertExists()
