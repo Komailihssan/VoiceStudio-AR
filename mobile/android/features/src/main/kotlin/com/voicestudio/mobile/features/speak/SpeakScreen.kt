@@ -87,28 +87,30 @@ import kotlinx.coroutines.*
 
 /** Preset speech and saved-voice cloning use different models, so each keeps its own remembered choice. */
 internal fun speakModelKey(capability: String)=if(capability=="clone") "speak-clone" else "speak"
-internal fun chooseSpeakModel(models: List<PhoneModel>,installed: Set<String>,choices: Map<String,String>,capability: String, ramBytes: Long = Long.MAX_VALUE): PhoneModel? {
+/** Speech language a fresh setup prefers (the English-only build defaults to English). */
+internal const val DEFAULT_SPEECH_LANGUAGE="en"
+
+internal fun chooseSpeakModel(models: List<PhoneModel>,installed: Set<String>,choices: Map<String,String>,capability: String, ramBytes: Long = Long.MAX_VALUE, preferredLanguage: String = DEFAULT_SPEECH_LANGUAGE): PhoneModel? {
     val matching=models.filter {it.capability==capability}
     val explicit= models.firstOrNull {it.id==choices[speakModelKey(capability)]&&(if(capability=="tts") it.supportsSpeech else it.capability==capability)}
     if(explicit!=null) return explicit
-    // Prefer an installed-model download option that can actually synthesize Arabic for a fresh TTS setup.
-    // Supertonic 3 in the v0.5.8 catalogue declares "ar" and is the phone's Arabic-capable preset TTS model.
-    val arabic=if(capability=="tts") matching.filter {"ar" in it.languages} else emptyList()
-    // An already-downloaded Arabic model wins over one that still needs a download.
-    return arabic.firstOrNull {it.id in installed&&it.fits(ramBytes)}
-        ?: arabic.firstOrNull {it.fits(ramBytes)}
+    // For a fresh TTS setup prefer a model that can speak the preferred language;
+    // an already-downloaded one wins over one that still needs a download.
+    val preferred=if(capability=="tts") matching.filter {preferredLanguage in it.languages} else emptyList()
+    return preferred.firstOrNull {it.id in installed&&it.fits(ramBytes)}
+        ?: preferred.firstOrNull {it.fits(ramBytes)}
         ?: matching.firstOrNull {it.id in installed&&it.fits(ramBytes)}
         ?: matching.firstOrNull {it.fits(ramBytes)}
         ?: matching.firstOrNull {it.id in installed}
-        ?: arabic.firstOrNull()
+        ?: preferred.firstOrNull()
         ?: matching.firstOrNull()
 }
 
-/** Language for phone speech: "auto" for cloning, otherwise the user's valid pick, then Arabic, then the model's first language. */
-internal fun speakLanguage(current: String,userPicked: Boolean,languages: List<String>,cloning: Boolean): String=when {
+/** Language for phone speech: "auto" for cloning, otherwise the user's valid pick, then the preferred language, then the model's first language. */
+internal fun speakLanguage(current: String,userPicked: Boolean,languages: List<String>,cloning: Boolean,preferred: String = DEFAULT_SPEECH_LANGUAGE): String=when {
     cloning -> "auto"
     userPicked&&current in languages -> current
-    "ar" in languages -> "ar"
+    preferred in languages -> preferred
     current in languages -> current
     else -> languages.firstOrNull().orEmpty()
 }
@@ -155,8 +157,8 @@ internal fun speakLanguage(current: String,userPicked: Boolean,languages: List<S
             val speakers=if(selected?.requiresReference==true) 0 else selected?.option("num_speakers",selected.option("speaker_count","1"))?.toIntOrNull()?.coerceIn(1,128) ?: 1
             val validSpeaker=voice!=null||speaker.toIntOrNull()?.let {it in 0 until speakers}==true
             LaunchedEffect(selected?.id,speakers) {if(voice==null&&!validSpeaker) speaker=if(selected?.requiresReference==true) "" else "0"}
-            var language by rememberSaveable {mutableStateOf("ar")}
-            // Arabic stays the default only until the user picks a language; their pick then survives
+            var language by rememberSaveable {mutableStateOf(DEFAULT_SPEECH_LANGUAGE)}
+            // The default language stays only until the user picks a language; their pick then survives
             // rotation and model switches whenever the new model supports it.
             var languagePicked by rememberSaveable {mutableStateOf(false)}
             LaunchedEffect(selected?.id,voice?.id) {

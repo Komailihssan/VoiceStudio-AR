@@ -52,8 +52,11 @@ import com.voicestudio.mobile.l10n.L10n
             }
 
             Group {
-            Picker("mobile.settings.language",prefs.locale,listOf("system" to l.t("mobile.settings.mode_system"))+L10n.languages.map {it to languageName(it,it)}) {value -> vm.preference {it.copy(locale=value)}}
-            HorizontalDivider(color=role("border"))
+            // English-only build: no interface language picker.
+            if(!L10n.ENGLISH_ONLY) {
+                Picker("mobile.settings.language",prefs.locale,listOf("system" to l.t("mobile.settings.mode_system"))+L10n.languages.map {it to languageName(it,it)}) {value -> vm.preference {it.copy(locale=value)}}
+                HorizontalDivider(color=role("border"))
+            }
             Toggle("mobile.settings.notifications",prefs.notifications) {enabled -> if(enabled&&Build.VERSION.SDK_INT>=33) notification() else vm.preference {it.copy(notifications=enabled)}}
             }
         Heading("mobile.settings.privacy")

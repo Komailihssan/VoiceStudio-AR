@@ -35,7 +35,9 @@ class L10n(private val catalogs: Map<String, JsonObject>, val locale: String) {
         // Escape both braces: Android's ICU regex rejects a bare `}` that the
         // JVM (and so Robolectric) accepts, which crashed the app on launch.
         private val PLACEHOLDER = Regex("""\{\{\s*([^{}]+?)\s*\}\}""")
-        val languages = listOf("en", "zh-CN", "es", "fr", "de", "ja", "pt", "it", "ru", "ko", "hi", "tr", "pl", "nl", "sv", "th", "vi", "id", "uk", "ar", "zh-TW", "gl")
+        /** This build ships an English-only interface: every lookup resolves to English. */
+        const val ENGLISH_ONLY = true
+        val languages = if(ENGLISH_ONLY) listOf("en") else listOf("en", "zh-CN", "es", "fr", "de", "ja", "pt", "it", "ru", "ko", "hi", "tr", "pl", "nl", "sv", "th", "vi", "id", "uk", "ar", "zh-TW", "gl")
         private fun lookup(obj: JsonObject?, key: String): String? {
             var node: JsonElement? = obj
             for(part in key.split('.')) node = (node as? JsonObject)?.get(part) ?: return null
@@ -66,7 +68,7 @@ class L10n(private val catalogs: Map<String, JsonObject>, val locale: String) {
                     additions = assets.list("").orEmpty().filter { it.startsWith("strings") && it.endsWith(".en.json") }
                         .sortedWith(compareBy<String> { when(it) { "strings.mobile.en.json" -> 0; "strings.android-additions.en.json" -> 2; else -> 1 } }.thenBy { it })
                 )
-            }.load(locale)
+            }.load(if(ENGLISH_ONLY) "en" else locale)
         }
         internal class CatalogLoader(private val read: (String) -> JsonObject, private val additions: List<String>) {
             private val parsed = mutableMapOf<String, JsonObject>()

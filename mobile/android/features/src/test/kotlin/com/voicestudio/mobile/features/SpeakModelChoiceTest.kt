@@ -20,7 +20,7 @@ class SpeakModelChoiceTest {
     }
     @Test fun explicitReferenceOnlyChoiceStaysVisibleBeforeVoiceSelection() {
         assertEquals("clone-b",chooseSpeakModel(models,setOf("tts-a"),mapOf("speak" to "clone-b"),"tts")?.id)
-        assertEquals("arabic-tts",chooseSpeakModel(models,setOf("clone-b"),emptyMap(),"tts")?.id)
+        assertEquals("arabic-tts",chooseSpeakModel(models,setOf("clone-b"),emptyMap(),"tts",preferredLanguage="ar")?.id)
     }
     @Test fun automaticChoicePrefersFittingInstalledModelAndExplicitOverrideRemainsAvailable() {
         val heavy=model("heavy","clone").copy(minRamGb=8.0)
@@ -31,29 +31,33 @@ class SpeakModelChoiceTest {
     }
     @Test fun withoutAChoiceFirstInstalledThenFirstModelOfThatCapability() {
         assertEquals("clone-b",chooseSpeakModel(models,setOf("clone-b"),emptyMap(),"clone")?.id)
-        assertEquals("arabic-tts",chooseSpeakModel(models,emptySet(),emptyMap(),"tts")?.id)
+        assertEquals("tts-a",chooseSpeakModel(models,emptySet(),emptyMap(),"tts")?.id)
     }
-    @Test fun freshPresetSpeechPrefersArabicCapableTtsModel() {
-        assertEquals("arabic-tts",chooseSpeakModel(models,emptySet(),emptyMap(),"tts")?.id)
+    @Test fun freshPresetSpeechPrefersArabicCapableTtsModelWhenArabicIsPreferred() {
+        assertEquals("arabic-tts",chooseSpeakModel(models,emptySet(),emptyMap(),"tts",preferredLanguage="ar")?.id)
+    }
+    @Test fun englishIsTheDefaultSpeechLanguage() {
+        assertEquals("en",speakLanguage("en",false,listOf("ar","en"),false))
+        assertEquals("ar",speakLanguage("ar",true,listOf("ar","en"),false))
     }
     @Test fun explicitPresetModelChoiceOverridesArabicDefault() {
         assertEquals("tts-b",chooseSpeakModel(models,emptySet(),mapOf("speak" to "tts-b"),"tts")?.id)
     }
     @Test fun installedArabicModelBeatsOneThatNeedsADownload() {
         val first=model("arabic-a","tts",listOf("ar"));val second=model("arabic-b","tts",listOf("ar"))
-        assertEquals("arabic-b",chooseSpeakModel(listOf(first,second),setOf("arabic-b"),emptyMap(),"tts")?.id)
+        assertEquals("arabic-b",chooseSpeakModel(listOf(first,second),setOf("arabic-b"),emptyMap(),"tts",preferredLanguage="ar")?.id)
     }
     @Test fun arabicIsDefaultUntilUserPicksAnotherLanguage() {
-        assertEquals("ar",speakLanguage("ar",false,listOf("en","ar"),false))
-        assertEquals("en",speakLanguage("en",true,listOf("en","ar"),false))
-        assertEquals("ar",speakLanguage("fr",true,listOf("en","ar"),false))
-        assertEquals("en",speakLanguage("ar",false,listOf("en"),false))
-        assertEquals("auto",speakLanguage("ar",true,listOf("en","ar"),true))
+        assertEquals("ar",speakLanguage("ar",false,listOf("en","ar"),false,preferred="ar"))
+        assertEquals("en",speakLanguage("en",true,listOf("en","ar"),false,preferred="ar"))
+        assertEquals("ar",speakLanguage("fr",true,listOf("en","ar"),false,preferred="ar"))
+        assertEquals("en",speakLanguage("ar",false,listOf("en"),false,preferred="ar"))
+        assertEquals("auto",speakLanguage("ar",true,listOf("en","ar"),true,preferred="ar"))
     }
     @Test fun arabicModelIsNotPreferredWhenItExceedsAvailableRam() {
         val arabic=model("arabic-heavy","tts",listOf("en","ar")).copy(minRamGb=10.0)
         val english=model("english-small","tts").copy(minRamGb=2.0)
-        assertEquals("english-small",chooseSpeakModel(listOf(english,arabic),emptySet(),emptyMap(),"tts",8_000_000_000)?.id)
+        assertEquals("english-small",chooseSpeakModel(listOf(english,arabic),emptySet(),emptyMap(),"tts",8_000_000_000,preferredLanguage="ar")?.id)
     }
 }
 

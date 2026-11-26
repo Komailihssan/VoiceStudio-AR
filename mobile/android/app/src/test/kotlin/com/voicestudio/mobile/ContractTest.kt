@@ -18,8 +18,10 @@ class ContractTest {
         val context=ApplicationProvider.getApplicationContext<Context>()
         val english=L10n.load(context,"en")
         assertSame(english,L10n.load(context,"en"))
-        assertNotSame(english,L10n.load(context,"fr"))
-        assertSame(L10n.load(context,"zh-CN"),L10n.load(context,"zh-Hans-CN"))
+        // English-only build: every requested locale resolves to the same English catalog.
+        assertSame(english,L10n.load(context,"fr"))
+        assertSame(english,L10n.load(context,"ar-SA"))
+        assertEquals("en",L10n.load(context,"zh-Hans-CN").locale)
     }
     @Test fun licenceMessageListsEachModelAndActionOnlyOnce() {
         val l=L10n.load(ApplicationProvider.getApplicationContext<Context>(),"en")

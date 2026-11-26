@@ -86,7 +86,8 @@ fun contentReportClient()=ContentReportClient(BuildConfig.CONTENT_REPORTS_URL,Bu
             activity.window.isNavigationBarContrastEnforced=false
         }
     }
-    val direction=if(Locale.forLanguageTag(locale).language=="ar") LayoutDirection.Rtl else LayoutDirection.Ltr
+    // Direction follows the language actually loaded (always English in the English-only build).
+    val direction=if(Locale.forLanguageTag(l.locale).language=="ar") LayoutDirection.Rtl else LayoutDirection.Ltr
     val snackbars=remember {SnackbarHostState()}
     CompositionLocalProvider(LocalL10n provides l,LocalLayoutDirection provides direction,LocalContentReportClient provides reportClient) {
         VoiceStudioTheme(ThemePreferences(prefs.mode,prefs.lightPalette,prefs.darkPalette)) {

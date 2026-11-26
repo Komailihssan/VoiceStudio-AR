@@ -83,7 +83,8 @@ val bundleCatalogs by tasks.registering {
         val out = assets.resolve("locales").apply { mkdirs() }
         assets.resolve("licenses").mkdirs()
         repository.resolve("LICENSE").copyTo(assets.resolve("licenses/VoiceStudio-AGPL-3.0.txt"), overwrite=true)
-        catalogs.listFiles()!!.filter { it.extension == "json" }.forEach { it.copyTo(out.resolve(it.name), overwrite = true) }
+        // English-only build: bundle only the English interface catalog.
+        catalogs.listFiles()!!.filter { it.name == "en.json" }.forEach { it.copyTo(out.resolve(it.name), overwrite = true) }
         contracts.listFiles()!!.filter { it.name.startsWith("strings") && it.name.endsWith(".en.json") }.forEach { it.copyTo(assets.resolve(it.name), overwrite = true) }
         contracts.resolve("models.json").copyTo(assets.resolve("models.json"), overwrite = true)
         contracts.resolve("tts").copyRecursively(assets.resolve("tts"), overwrite=true)
